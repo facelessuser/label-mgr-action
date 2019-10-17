@@ -12,7 +12,6 @@ import urllib.parse
 __version__ = "1.0.0"
 
 RE_VALID_COLOR = re.compile('#[a-fA-F0-9]{6}')
-RE_VALID_NAME = re.compile('[-a-zA-Z_ ]+')
 
 
 class Api:
@@ -183,14 +182,16 @@ class GhLabelSync:
         self._parse_labels(config)
         self.git = git
 
-    def _validate_name(self, name):
+    def _validate_str(self, name):
         """Validate name."""
 
-        if RE_VALID_NAME.match(name) is None:
-            raise ValueError("'{}' is not a valid name".format(name))
+        if not isinstance(name, str):
+            raise TypeError("Key value is not of type 'str', type '{}' received instead".format(type(name)))
 
     def _validate_color(self, color):
         """Validate color."""
+
+        self._validate_str(color)
 
         if RE_VALID_COLOR.match(color) is None:
             raise ValueError('{} is not a valid color'.format(color))
@@ -210,10 +211,10 @@ class GhLabelSync:
 
         self.labels = {}
         for name, value in config.get('labels', {}).items():
-            self._validate_name(name)
+            self._validate_str(name)
             value['color'] = self._resolve_color(value['color'])
             if 'renamed' in value:
-                self._validate_name(value['renamed'])
+                self._validate_str(value['renamed'])
             if 'description' in value and not isinstance(value['description'], str):
                 raise ValueError("Description for '{}' should be of type str".format(name))
             if name in self.labels:
@@ -233,7 +234,7 @@ class GhLabelSync:
         self.colors = {}
         for name, color in config.get('colors', {}).items():
             self._validate_color(color)
-            self._validate_name(name)
+            self._validate_str(name)
             if name in self.colors:
                 raise ValueError("The name '{}' is already present in the color list".format(name))
             self.colors[name] = color[1:]
