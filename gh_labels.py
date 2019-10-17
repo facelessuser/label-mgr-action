@@ -215,6 +215,7 @@ class GhLabelSync:
         """Parse labels."""
 
         self.labels = {}
+        seen = set()
         for name, value in config.get('labels', {}).items():
             self._validate_str(name)
             value['color'] = self._resolve_color(value['color'])
@@ -222,8 +223,9 @@ class GhLabelSync:
                 self._validate_str(value['renamed'])
             if 'description' in value and not isinstance(value['description'], str):
                 raise ValueError("Description for '{}' should be of type str".format(name))
-            if name in self.labels:
+            if name.lower() in seen:
                 raise ValueError("The name '{}' is already present in the label list".format(name))
+            seen.add(name.lower())
             self.labels[name] = value
 
         self.ignores = set()
