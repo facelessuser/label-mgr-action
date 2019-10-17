@@ -1,0 +1,18 @@
+name: 'GitHub Label Manager'
+author: 'Isaac Muse'
+description: 'Simple label manager for GitHub'
+inputs:
+  token:
+    description: 'GitHub access token for managing labels'
+    required: true
+    default: ''
+  delete:
+    description: 'Delete links that are not specified in the label JSON.'
+    required: false
+    default: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+branding:
+  icon: 'tag'
+  color: 'green'
