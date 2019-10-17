@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.7
 
 ADD gh_labels.py /gh_labels.py
 ADD requirements.txt /requirements.txt
