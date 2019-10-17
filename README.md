@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Sync labels
-      uses: facelessuser/label-mgr-action@master
+      uses: facelessuser/label-mgr-action@v1
       with:
         token: ${{ secrets.GH_TOKEN }}
 ```
@@ -46,7 +46,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Sync labels
-      uses: facelessuser/label-mgr-action@master
+      uses: facelessuser/label-mgr-action@v1
       with:
         token: ${{ secrets.GH_TOKEN }}
         mode: 'delete'
