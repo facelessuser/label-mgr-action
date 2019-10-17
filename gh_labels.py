@@ -226,6 +226,11 @@ class GhLabelSync:
                 raise ValueError("The name '{}' is already present in the label list".format(name))
             self.labels[name] = value
 
+        self.ignores = set()
+        for name in config.get('ignores', []):
+            self._validate_str(name)
+            self.ignores.add(name.lower())
+
     def _resolve_color(self, color):
         """Parse color."""
 
@@ -283,7 +288,7 @@ class GhLabelSync:
                 updated.add(edit.old)
                 updated.add(edit.new)
             else:
-                if edit is None and self.delete:
+                if edit is None and self.delete and label['name'].lower() not in self.ignores:
                     print('    Deleting {}: #{} "{}"'.format(label['name'], label['color'], label['description']))
                     if not self.debug:
                         self.git.delete_label(label['name'])
@@ -340,7 +345,7 @@ def main():
 
     # Sync the labels
     git = Api(token, user, repo)
-    GhLabelSync(config, git, delete, dbg).sync()
+    GhLabelSync(config, git, delete, debug).sync()
     return 0
 
 

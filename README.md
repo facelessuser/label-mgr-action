@@ -93,3 +93,41 @@ a label called `bug`, and we wanted to add a :bug: emoji to the name:
     }
 }
 ```
+
+When `mode` is set to `delete`, there may be certain labels you wish to ignore. Maybe they are created by an external
+process like `dependbot`.  Simply add labels you wish to ignore to the the ignore list:
+
+```js
+{
+    "colors": {
+        "bug": "#ff0000",
+        "feature": "#00ff00"
+    },
+    {
+      "ignores": [
+        "dependencies",
+        "security"
+      ]
+    },
+    "labels": {
+        "bug": {"color": "bug", "description": "Bug report."},
+        "feature": {"color": "feature", "description": "Feature request."}
+    }
+}
+```
+
+## YAML Format
+
+If desired, you can point to a YAML file instead. Label-mgr-action can actually parse both formats. All of the same
+features available in the JSON format are available in the YAML format. Just make sure to use `file` to point to your
+YAML file.
+
+```yml
+labels:
+    bug:
+        color: '#ff0000'
+        description: Bug report.
+    feature:
+        color: '#00ff00'
+        description: Feature request.
+```
