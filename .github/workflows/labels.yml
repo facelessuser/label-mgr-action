@@ -3,7 +3,7 @@ name: labels
 on:
   push:
     branches:
-      - 'master'
+      - 'feature/yaml'
 
 jobs:
   label-sync:
@@ -13,7 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Sync labels
-      uses: facelessuser/label-mgr-action@master
+      uses: facelessuser/label-mgr-action@feature/yaml
       with:
         token: ${{ secrets.GH_TOKEN }}
         mode: 'delete'
+        debug: 'enable'
+        file: '.github/labels.yml'

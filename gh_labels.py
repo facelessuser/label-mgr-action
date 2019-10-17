@@ -2,12 +2,17 @@
 """Populate GitHub labels for issue tracker."""
 from collections import namedtuple
 import codecs
+import yaml
 import json
 import sys
 import os
 import re
 import requests
 import urllib.parse
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 __version__ = "1.0.0"
 
@@ -298,6 +303,14 @@ class GhLabelSync:
 def main():
     """Main."""
 
+    dbg = os.getenv("INPUT_DEBUG", 'disable')
+    if dbg == 'enable':
+        debug = True
+    elif dbg == 'disable':
+        debug = False
+    else:
+        raise ValueError('Unknown value for debug: {}'.format(dbg))
+
     # Parse mode
     mode = os.getenv("INPUT_MODE", 'normal')
     if mode == 'delete':
@@ -321,12 +334,13 @@ def main():
 
     # Parse label file
     labels = os.getenv("INPUT_FILE", '.github/labels.json')
+    print('Reading labels from {}'.format(labels))
     with codecs.open(labels, 'r', encoding='utf-8') as f:
-        config = json.loads(f.read())
+        config = yaml.load(f.read(), Loader=Loader)
 
     # Sync the labels
     git = Api(token, user, repo)
-    GhLabelSync(config, git, delete).sync()
+    GhLabelSync(config, git, delete, dbg).sync()
     return 0
 
 
