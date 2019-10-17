@@ -297,24 +297,33 @@ class GhLabelSync:
 def main():
     """Main."""
 
-    user = ''
-    repo = ''
-    token = os.getenv("INPUT_TOKEN")
-    delete = os.getenv("INPUT_DELETE")
-    if delete.lower() == 'true':
+    # Parse mode
+    mode = os.getenv("INPUT_MODE", 'normal')
+    if mode == 'delete':
         delete = True
-    else:
+    elif mode == 'normal':
         delete = False
+    else:
+        raise ValueError('Unknown mode: {}'.format(mode))
+
+    # Get the user's name and repository so we can access the labels for the repository
     repository =  os.getenv("GITHUB_REPOSITORY")
     if repository and '/' in repository:
         user, repo = repository.split('/')
+    else:
+        raise ValueError('Could not acquire user name and repository name')
 
-    if not user or not repo or not token:
-        raise ValueError('Cannot access the repository!')
+    # Acquire access token
+    token = os.getenv("INPUT_TOKEN", '')
+    if not token:
+        raise ValueError('No token provided')
 
-    with codecs.open('.github/labels.json', 'r', encoding='utf-8') as f:
+    # Parse label file
+    labels = os.getenv("INPUT_FILE", '.github/labels.json')
+    with codecs.open(labels, 'r', encoding='utf-8') as f:
         config = json.loads(f.read())
 
+    # Sync the labels
     git = Api(token, user, repo)
     GhLabelSync(config, git, delete).sync()
     return 0

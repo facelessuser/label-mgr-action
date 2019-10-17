@@ -16,4 +16,4 @@ jobs:
       uses: facelessuser/label-mgr-action@master
       with:
         token: ${{ secrets.GH_TOKEN }}
-        delete: 'true'
+        mode: 'delete'

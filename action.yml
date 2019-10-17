@@ -6,10 +6,14 @@ inputs:
     description: 'GitHub access token for managing labels'
     required: true
     default: ''
-  delete:
-    description: 'Delete links that are not specified in the label JSON.'
+  mode:
+    description: 'Set mode to run label manager in: delete (deletes labels not in list), normal (leaves orphaned labels).'
     required: false
-    default: false
+    default: 'normal'
+  file:
+    description: 'JSON file containing the labels. Default is .github/labels.json'
+    required: false
+    default: '.github/labels.json'
 runs:
   using: 'docker'
   image: 'Dockerfile'
