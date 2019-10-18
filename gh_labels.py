@@ -214,9 +214,10 @@ class GhLabelSync:
     def _parse_labels(self, config):
         """Parse labels."""
 
-        self.labels = {}
+        self.labels = []
         seen = set()
-        for name, value in config.get('labels', {}).items():
+        for value in config.get('labels', {}):
+            name = value['name']
             self._validate_str(name)
             value['color'] = self._resolve_color(value['color'])
             if 'renamed' in value:
@@ -226,7 +227,7 @@ class GhLabelSync:
             if name.lower() in seen:
                 raise ValueError("The name '{}' is already present in the label list".format(name))
             seen.add(name.lower())
-            self.labels[name] = value
+            self.labels.append(value)
 
         self.ignores = set()
         for name in config.get('ignores', []):
@@ -255,7 +256,8 @@ class GhLabelSync:
         """Find label."""
 
         edit = None
-        for name, value in self.labels.items():
+        for value in self.labels:
+            name = value['name']
             old_name = value.get('renamed', name)
 
             if label.lower() != old_name.lower():
@@ -297,7 +299,8 @@ class GhLabelSync:
                 else:
                     print('    Skipping {}: #{} "{}"'.format(label['name'], label['color'], label['description']))
                 updated.add(label['name'])
-        for name, value in self.labels.items():
+        for value in self.labels:
+            name = value['name']
             color = value['color']
             description = value.get('description', '')
 
@@ -340,7 +343,7 @@ def main():
         raise ValueError('No token provided')
 
     # Parse label file
-    labels = os.getenv("INPUT_FILE", '.github/labels.json')
+    labels = os.getenv("INPUT_FILE", '.github/labels.yml')
     print('Reading labels from {}'.format(labels))
     with codecs.open(labels, 'r', encoding='utf-8') as f:
         config = yaml.load(f.read(), Loader=Loader)

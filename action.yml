@@ -11,9 +11,9 @@ inputs:
     required: false
     default: 'normal'
   file:
-    description: 'JSON file containing the labels. Default is .github/labels.json'
+    description: 'YAML file containing the labels. Default is .github/labels.yml'
     required: false
-    default: '.github/labels.json'
+    default: '.github/labels.yml'
   debug:
     description: 'Debug will run the label syncer without applying changes. Set to "enable" to enable.'
     required: false
