@@ -25,44 +25,44 @@ class Api:
     def __init__(self, token, user, repo):
         """Initialize."""
 
-        self.url = 'https://api.github.com/'
+        self.url = 'https://api.github.com'
         self.token = token
         self.user = user
         self.repo = repo
 
-    def _delete(self, command, timeout=60):
+    def _delete(self, command, timeout=60, expected=200, headers=None):
         """Send a DELETE REST command."""
 
         if timeout == 0:
             timeout = None
 
-        headers = {
-            'Authorization': 'token {}'.format(self.token),
-            'Accept': 'application/vnd.github.symmetra-preview+json'
-        }
+        if headers is None:
+            headers = {}
+
+        headers['Authorization'] = 'token {}'.format(self.token)
 
         try:
             resp = requests.delete(
-                self.url + command,
+                command,
                 headers=headers,
                 timeout=timeout
             )
 
-            assert resp.status_code == 204
+            assert resp.status_code == expected
 
         except Exception:
-            raise RuntimeError('DELETE command failed: {}'.format(self.url + command))
+            raise RuntimeError('DELETE command failed: {}'.format(command))
 
-    def _patch(self, command, payload, timeout=60):
+    def _patch(self, command, payload, timeout=60, expected=200, headers=None):
         """Send a PATCH REST command."""
 
         if timeout == 0:
             timeout = None
 
-        headers = {
-            'Authorization': 'token {}'.format(self.token),
-            'Accept': 'application/vnd.github.symmetra-preview+json'
-        }
+        if headers is None:
+            headers = {}
+
+        headers['Authorization'] = 'token {}'.format(self.token)
 
         if payload is not None:
             payload = json.dumps(payload)
@@ -70,27 +70,27 @@ class Api:
 
         try:
             resp = requests.patch(
-                self.url + command,
+                command,
                 data=payload,
                 headers=headers,
                 timeout=timeout
             )
 
-            assert resp.status_code == 200
+            assert resp.status_code == expected
 
         except Exception:
-            raise RuntimeError('PATCH command failed: {}'.format(self.url + command))
+            raise RuntimeError('PATCH command failed: {}'.format(command))
 
-    def _post(self, command, payload, timeout=60):
+    def _post(self, command, payload, timeout=60, expected=200, headers=None):
         """Send a POST REST command."""
 
         if timeout == 0:
             timeout = None
 
-        headers = {
-            'Authorization': 'token {}'.format(self.token),
-            'Accept': 'application/vnd.github.symmetra-preview+json'
-        }
+        if headers is None:
+            headers = {}
+
+        headers['Authorization'] = 'token {}'.format(self.token)
 
         if payload is not None:
             payload = json.dumps(payload)
@@ -98,76 +98,102 @@ class Api:
 
         try:
             resp = requests.post(
-                self.url + command,
+                command,
                 data=payload,
                 headers=headers,
                 timeout=timeout
             )
 
-            assert resp.status_code == 201
+            assert resp.status_code == expected
 
         except Exception:
-            raise RuntimeError('POST command failed: {}'.format(self.url + command))
+            raise RuntimeError('POST command failed: {}'.format(command))
 
-    def _get(self, command, timeout=60, pages=False):
+    def _get(self, command, payload=None, timeout=60, pages=False, expected=200, headers=None, text=False):
         """Send a GET REST request."""
 
         if timeout == 0:
             timeout = None
 
-        headers = {
-            'Authorization': 'token {}'.format(self.token),
-            'Accept': 'application/vnd.github.symmetra-preview+json'
-        }
+        if headers is None:
+            headers = {}
 
-        cmd = self.url + command
+        headers['Authorization'] = 'token {}'.format(self.token)
+
         data = None
 
-        while cmd:
+        while command:
             try:
                 resp = requests.get(
-                    cmd,
+                    command,
+                    params=payload,
                     headers=headers,
                     timeout=timeout
                 )
 
-                assert resp.status_code == 200
+                assert resp.status_code == expected
 
-                cmd = resp.links.get('next', {}).get('url', '') if pages else ''
-                if pages and data is not None:
-                    data.extend(json.loads(resp.text))
+                command = resp.links.get('next', {}).get('url', '') if pages else ''
+                data = json.loads(resp.text) if not text else resp.text
+                if pages and not text:
+                    for entry in data:
+                        yield entry
                 else:
-                    data = json.loads(resp.text)
-            except Exception:
-                raise RuntimeError('GET command failed: {}'.format(cmd))
+                    yield data
 
-        return data
+            except Exception:
+                raise RuntimeError('GET command failed: {}'.format(command))
+
+    def get_contents(self, file, ref="master"):
+        """Get contents."""
+
+        return list(
+            self._get(
+                '/'.join([self.url, 'repos', self.user, self.repo, 'contents',  urllib.parse.quote(file)]),
+                headers={'Accept': 'application/vnd.github.v3.raw'},
+                payload={'ref': ref},
+                text=True
+            )
+        )[0]
 
     def get_labels(self):
         """Get labels."""
 
-        return self._get('/'.join(['repos', self.user, self.repo, 'labels']), pages=True)
+        return list(
+            self._get(
+                '/'.join([self.url, 'repos', self.user, self.repo, 'labels']),
+                pages=True,
+                headers={'Accept': 'application/vnd.github.symmetra-preview+json'}
+            )
+        )
 
     def create_label(self, name, color, description):
         """Create label."""
 
         self._post(
-            '/'.join(['repos', self.user, self.repo, 'labels']),
-            {'name': name, 'color': color, 'description': description}
+            '/'.join([self.url, 'repos', self.user, self.repo, 'labels']),
+            {'name': name, 'color': color, 'description': description},
+            headers={'Accept': 'application/vnd.github.symmetra-preview+json'},
+            expected=201
         )
 
     def edit_label(self, old_name, new_name, color, description):
         """Edit label."""
 
         self._patch(
-            '/'.join(['repos', self.user, self.repo, 'labels', urllib.parse.quote(old_name)]),
-            {'new_name': new_name, 'color': color, 'description': description}
+            '/'.join([self.url, 'repos', self.user, self.repo, 'labels', urllib.parse.quote(old_name)]),
+            {'new_name': new_name, 'color': color, 'description': description},
+            headers={'Accept': 'application/vnd.github.symmetra-preview+json'}
         )
 
     def delete_label(self, name):
         """Delete a label."""
 
-        self._delete('/'.join(['repos', self.user, self.repo, 'labels', urllib.parse.quote(name)]))
+        self._delete(
+            '/'.join([self.url, 'repos', self.user, self.repo, 'labels', urllib.parse.quote(name)]),
+             headers={'Accept': 'application/vnd.github.symmetra-preview+json'},
+             expected=204
+        )
 
 
 # Label handling
@@ -181,11 +207,18 @@ class GhLabelSync:
     def __init__(self, config, git, delete=False, debug=False):
         """Initialize."""
 
+        self.git = git
         self.debug = debug
         self.delete = delete
+        config = self._get_config(config)
         self._parse_colors(config)
         self._parse_labels(config)
-        self.git = git
+
+    def _get_config(self, config):
+        """Get config."""
+
+        print('Reading labels from {}'.format(config))
+        return yaml.load(self.git.get_contents(config, ref=os.getenv("GITHUB_SHA")), Loader=Loader)
 
     def _validate_str(self, name):
         """Validate name."""
@@ -200,16 +233,6 @@ class GhLabelSync:
 
         if RE_VALID_COLOR.match(color) is None:
             raise ValueError('{} is not a valid color'.format(color))
-
-    def _get_repo(self):
-        """Get the desired repository."""
-
-        target = None
-        for repo in self.user.get_repos():
-            if repo.name == self.repo_name:
-                target = repo
-                break
-        return target
 
     def _parse_labels(self, config):
         """Parse labels."""
@@ -342,11 +365,8 @@ def main():
     if not token:
         raise ValueError('No token provided')
 
-    # Parse label file
-    labels = os.getenv("INPUT_FILE", '.github/labels.yml')
-    print('Reading labels from {}'.format(labels))
-    with codecs.open(labels, 'r', encoding='utf-8') as f:
-        config = yaml.load(f.read(), Loader=Loader)
+    # Get label file
+    config = os.getenv("INPUT_FILE", '.github/labels.yml')
 
     # Sync the labels
     git = Api(token, user, repo)
