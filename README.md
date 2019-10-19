@@ -20,9 +20,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
     - name: Sync labels
-      uses: facelessuser/label-mgr-action@v1
+      uses: facelessuser/label-mgr-action@v1.0.0
       with:
         token: ${{ secrets.GH_TOKEN }}
 ```
@@ -44,9 +43,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
     - name: Sync labels
-      uses: facelessuser/label-mgr-action@v1
+      uses: facelessuser/label-mgr-action@v1.0.0
       with:
         token: ${{ secrets.GH_TOKEN }}
         mode: 'delete'
