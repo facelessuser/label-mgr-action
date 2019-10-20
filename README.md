@@ -1,3 +1,6 @@
+![GitHub release (latest SemVer)][latest-release]
+![License][license-image-mit]
+
 # Label Manager Action
 
 ## Overview
@@ -115,3 +118,6 @@ labels:
   color: feature
   description: Feature request.
 ```
+
+[latest-release]: https://img.shields.io/github/v/release/facelessuser/label-mgr-action
+[license-image-mit]: https://img.shields.io/badge/license-MIT-blue.svg
