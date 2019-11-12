@@ -3,6 +3,8 @@
 
 # Label Manager Action
 
+This repo is being Archived as this functionality (along with various fixes) has been pulled into our own bot: https://github.com/facelessuser/label-bot.
+
 ## Overview
 
 A simple label manager that syncs a YAML file with labels with your repository. Labels are either added if they don't
